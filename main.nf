@@ -87,6 +87,8 @@ pre_cores = findFiles('dearray', "*.tif",
     {error "No TMA cores in ${params.in}/dearray"})
 pre_masks = findFiles('dearray', "masks/*.tif",
     {error "No TMA masks in ${params.in}/dearray/masks"})
+pre_clahe = findFiles('clahe', "*.ome.tif",
+    {error "No CLAHE preprocessed image in ${params.in}/clahe"})
 pre_pmap  = findFiles('probability-maps', "*/*-pmap.tif",
     {error "No probability maps found in ${params.in}/probability-maps"})
     .map{ f -> tuple(f.getParent().getName(), f) }
@@ -106,6 +108,7 @@ include {quantification} from "$projectDir/modules/quantification"
 include {downstream}     from "$projectDir/modules/downstream"
 include {viz}            from "$projectDir/modules/viz"
 include {background}     from "$projectDir/modules/background"
+include {clahe}          from "$projectDir/modules/clahe"
 
 // Define the primary mcmicro workflow
 workflow {
@@ -138,25 +141,43 @@ workflow {
     chMrk = chMrk.nobs.mix(bsub_marker)
 
     // Are we working with a TMA or a whole-slide image?
-    img = img
+    tma_img = img
         .branch {
             wsi: !wfp.tma
             tma: wfp.tma
         }
 
     // Apply dearray to TMAs only
-    dearray(mcp, img.tma)
+    dearray(mcp, tma_img.tma)
 
     // Merge against precomputed intermediates
     tmacores = dearray.out.cores.mix(pre_cores)
     tmamasks = dearray.out.masks.mix(pre_masks)
 
     // Reconcile WSI and TMA processing for downstream segmentation
-    allimg = img.wsi.mix(tmacores)
-    segmentation(mcp, allimg, tmamasks, pre_pmap)
+    allimg = tma_img.wsi.mix(tmacores)
+
+    // Should CLAHE be applied?
+    clahimg = allimg.
+        branch{
+            noclah: !wfp.clahe
+            clahe: wfp.clahe
+        }
+    // Apply CLAHE if specified
+    clahe(mcp, clahimg.clahe)
+    // Merge against precomputed intermediates
+    clahe_image = clahe.out.image.mix(pre_clahe)
+
+    // Reconcile non-CLAHE and CLAHE images just for segmentation
+    seg_img = clahimg.noclah.mix(clahe_image)
+
+    // Apply segmentation
+    segmentation(mcp, seg_img, tmamasks, pre_pmap)
 
     // Merge segmentation masks against precomputed ones and append markers.csv
     segMsk = segmentation.out.mix(pre_seg)
+    
+    // Apply quantification workflow on allimg (without CLAHE)
     quantification(mcp, allimg, segMsk, chMrk)
 
     // Spatial feature tables -> cell state calling

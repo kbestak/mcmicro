@@ -4,16 +4,15 @@ import mcmicro.*
 // Process name will appear in the the nextflow execution log
 // While not strictly required, it's a good idea to make the 
 //   process name match your tool name to avoid user confusion
-process backsub {
+process clahe_seg_prep {
 
     // Use the container specification from the parameter file
     container "${params.contPfx}${module.container}:${module.version}"
 
     // Specify the project subdirectory for writing the outputs to
     // The pattern: specification must match the output: files below
-    // Subdirectory: background
-    publishDir "${params.in}/background", mode: 'copy', pattern: "${sampleName+'_backsub'}.ome.tif"
-    publishDir "${params.in}/background", mode: 'copy', pattern:'markers_bs.csv'
+    // Subdirectory: clahe
+    publishDir "${params.in}/clahe", mode: 'copy', pattern: "${sampleName+'_clahe'}.ome.tif"
 
     // Stores .command.sh and .command.log from the work directory
     //   to the project provenance
@@ -30,44 +29,40 @@ process backsub {
   input:
     val mcp
     val module
-    path(marker)
     path(image)
     val sampleName
 
     // outputs are returned as results with appropriate patterns
   output:
-    // Output background subtracted image and markers.csv
-    path("${sampleName}.ome.tif"), emit: image_out
-    path('markers_bs.csv'), emit: marker_out
+    // Output clahe image
+    path("${sampleName}.ome.tif"), emit: clahe_seg_prep
     // Provenance files
     tuple path('.command.sh'), path('.command.log')
 
     // Specifies whether to run the process
     // Here, we simply take the flag from the workflow parameters
-  when: mcp.workflow["background"]
+  when: Flow.doirun('clahe', mcp.workflow)
 
     // The command to be executed inside the tool container
     // The command must write all outputs to the current working directory (.)
     // Opts.moduleOpts() will identify and return the appropriate module options
     """
-    python3 /background_subtraction/background_sub.py -o ${sampleName}.ome.tif -mo ./markers_bs.csv -r $image -m $marker ${Opts.moduleOpts(module, mcp)}
+    python3 /seg_prep/clahe_segmentation_prep.py --output ${sampleName}.ome.tif --input $image ${Opts.moduleOpts(module, mcp)}
     """
 }
-workflow background {
+workflow clahe {
   
     // Inputs:
   take:
     mcp // MCMICRO parameters (workflow, options, etc.)
-    image // image to apply background subtraction to
-    marker // marker file
+    image // image to apply clahe on
   main:
     // run the backsub process with the mcmicro parameters, module value
     // markers path and pre-registered image path
     sampleName = file(params.in).name
-    backsub(mcp, mcp.modules['background'], marker, image, sampleName)
+    clahe_seg_prep(mcp, mcp.modules['clahe'], image, sampleName)
     
     // Return the outputs produced by the tool
   emit:
-    image = backsub.out.image_out
-    marker = backsub.out.marker_out
+    image = clahe_seg_prep.out.clahe_seg_prep
 }
