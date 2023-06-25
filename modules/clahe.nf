@@ -12,7 +12,7 @@ process clahe_seg_prep {
     // Specify the project subdirectory for writing the outputs to
     // The pattern: specification must match the output: files below
     // Subdirectory: clahe
-    publishDir "${params.in}/clahe", mode: 'copy', pattern: "${sampleName+'_clahe'}.ome.tif"
+    publishDir "${params.in}/clahe", mode: 'copy', pattern: "${sampleName}.ome.tif"
 
     // Stores .command.sh and .command.log from the work directory
     //   to the project provenance

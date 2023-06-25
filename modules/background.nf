@@ -12,7 +12,7 @@ process backsub {
     // Specify the project subdirectory for writing the outputs to
     // The pattern: specification must match the output: files below
     // Subdirectory: background
-    publishDir "${params.in}/background", mode: 'copy', pattern: "${sampleName+'_backsub'}.ome.tif"
+    publishDir "${params.in}/background", mode: 'copy', pattern: "${sampleName}.ome.tif"
     publishDir "${params.in}/background", mode: 'copy', pattern:'markers_bs.csv'
 
     // Stores .command.sh and .command.log from the work directory
