@@ -39,7 +39,7 @@ modules:
   clahe:
     name: clahe_seg_prep
     container: kbestak/seg_prep
-    version: 0.1.2
+    version: 0.1.3
   segmentation:
     -
       name: unmicst
