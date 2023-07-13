@@ -35,7 +35,7 @@ process clahe_seg_prep {
     // outputs are returned as results with appropriate patterns
   output:
     // Output clahe image
-    path("${sampleName}.ome.tif"), emit: clahe_seg_prep
+    path("${sampleName}_clahe.ome.tif"), emit: clahe_seg_prep
     // Provenance files
     tuple path('.command.sh'), path('.command.log')
 

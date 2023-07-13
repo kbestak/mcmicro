@@ -37,7 +37,7 @@ process backsub {
     // outputs are returned as results with appropriate patterns
   output:
     // Output background subtracted image and markers.csv
-    path("${sampleName}.ome.tif"), emit: image_out
+    path("${sampleName}_backsub.ome.tif"), emit: image_out
     path('markers_bs.csv'), emit: marker_out
     // Provenance files
     tuple path('.command.sh'), path('.command.log')
