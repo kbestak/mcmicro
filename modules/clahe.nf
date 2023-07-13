@@ -12,7 +12,7 @@ process clahe_seg_prep {
     // Specify the project subdirectory for writing the outputs to
     // The pattern: specification must match the output: files below
     // Subdirectory: clahe
-    publishDir "${params.in}/clahe", mode: 'copy', pattern: "${sampleName}.ome.tif"
+    publishDir "${params.in}/clahe", mode: 'copy', pattern: "${sampleName}_clahe.ome.tif"
 
     // Stores .command.sh and .command.log from the work directory
     //   to the project provenance
@@ -47,7 +47,7 @@ process clahe_seg_prep {
     // The command must write all outputs to the current working directory (.)
     // Opts.moduleOpts() will identify and return the appropriate module options
     """
-    python3 /seg_prep/clahe_segmentation_prep.py --output ${sampleName}.ome.tif --input $image ${Opts.moduleOpts(module, mcp)}
+    python3 /seg_prep/clahe_segmentation_prep.py --output ${sampleName}_clahe.ome.tif --input $image ${Opts.moduleOpts(module, mcp)}
     """
 }
 workflow clahe {

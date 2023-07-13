@@ -12,7 +12,7 @@ process backsub {
     // Specify the project subdirectory for writing the outputs to
     // The pattern: specification must match the output: files below
     // Subdirectory: background
-    publishDir "${params.in}/background", mode: 'copy', pattern: "${sampleName}.ome.tif"
+    publishDir "${params.in}/background", mode: 'copy', pattern: "${sampleName}_backsub.ome.tif"
     publishDir "${params.in}/background", mode: 'copy', pattern:'markers_bs.csv'
 
     // Stores .command.sh and .command.log from the work directory
@@ -50,7 +50,7 @@ process backsub {
     // The command must write all outputs to the current working directory (.)
     // Opts.moduleOpts() will identify and return the appropriate module options
     """
-    python3 /background_subtraction/background_sub.py -o ${sampleName}.ome.tif -mo ./markers_bs.csv -r $image -m $marker ${Opts.moduleOpts(module, mcp)}
+    python3 /background_subtraction/background_sub.py -o ${sampleName}_backsub.ome.tif -mo ./markers_bs.csv -r $image -m $marker ${Opts.moduleOpts(module, mcp)}
     """
 }
 workflow background {
